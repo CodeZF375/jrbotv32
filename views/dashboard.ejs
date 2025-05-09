@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= stats ? stats.botName : 'Bot Paneli' %></title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    .status-badge {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+      background: #43b581;
+      box-shadow: 0 0 6px #43b58188;
+    }
+    .status-badge.idle { background: #faa61a; box-shadow: 0 0 6px #faa61a88; }
+    .status-badge.dnd { background: #f04747; box-shadow: 0 0 6px #f0474788; }
+    .status-badge.offline { background: #747f8d; box-shadow: 0 0 6px #747f8d88; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 24px;
+      margin: 24px 0;
+    }
+    .stat-card {
+      background: #23272a;
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.05em;
+      box-shadow: 0 1px 4px #0004;
+      color: #fff;
+    }
+    .stat-icon {
+      font-size: 1.5em;
+      opacity: 0.85;
+    }
+    .bot-header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .bot-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 3px solid #5865f2;
+      box-shadow: 0 2px 12px #5865f288;
+    }
+    .bot-title {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 2em;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+    .bot-id {
+      color: #b9bbbe;
+      font-size: 0.95em;
+      margin-top: 2px;
+    }
+    .send-message-form {
+      margin-top: 18px;
+    }
+    .dashboard-footer {
+      margin-top: 32px;
+      color: #b9bbbe;
+      font-size: 0.95em;
+      text-align: center;
+      opacity: 0.7;
+    }
+    @media (max-width: 600px) {
+      .dashboard-container { padding: 16px 4px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .bot-header { flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <% if (stats) { %>
+      <div class="bot-header">
+        <img src="<%= stats.botAvatar || '/default-avatar.png' %>" alt="Bot Avatar" class="bot-avatar">
+        <div>
+          <div class="bot-title">
+            <span class="status-badge <%= stats.status || 'offline' %>"></span>
+            <%= stats.botName || 'Bot' %>
+          </div>
+          <div class="bot-id">ID: <%= stats.botId || 'N/A' %></div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><span class="stat-icon">🌐</span> Sunucu: <b><%= stats.guildCount || 0 %></b></div>
+        <div class="stat-card"><span class="stat-icon">👥</span> Kullanıcı: <b><%= stats.userCount || 0 %></b></div>
+        <div class="stat-card"><span class="stat-icon">#️⃣</span> Kanal: <b><%= stats.channelCount || 0 %></b></div>
+        <div class="stat-card"><span class="stat-icon">⏱️</span> Çalışma Süresi: <b id="uptime"><%= stats.uptime || 'N/A' %></b></div>
+        <div class="stat-card"><span class="stat-icon">💾</span> Bellek: <b><%= stats.memory || 0 %> MB</b></div>
+        <div class="stat-card"><span class="stat-icon">⚡</span> Node.js: <b><%= stats.nodeVersion || 'N/A' %></b></div>
+        <div class="stat-card"><span class="stat-icon">📦</span> discord.js: <b><%= stats.djsVersion || 'N/A' %></b></div>
+        <div class="stat-card"><span class="stat-icon">👑</span> Sahip: <b><%= stats.owner || 'N/A' %></b></div>
+      </div>
+      <hr>
+      <form action="/send-message" method="POST" class="send-message-form">
+        <label for="channelId">Kanal ID:</label>
+        <input type="text" id="channelId" name="channelId" placeholder="Kanal ID" required>
+        <label for="message">Mesaj:</label>
+        <input type="text" id="message" name="message" placeholder="Mesaj" required>
+        <button type="submit">Mesaj Gönder</button>
+      </form>
+      <% if (message) { %>
+        <div class="message"><%= message %></div>
+      <% } %>
+    <% } else { %>
+      <h1>Bot is not ready yet. Please wait...</h1>
+    <% } %>
+    <div class="dashboard-footer">
+      <span>Made with ❤️ by JrBot Team &middot; <%= new Date().getFullYear() %></span>
+    </div>
+  </div>
+  <script>
+    <% if (stats && stats.uptimeSeconds) { %>
+    let uptime = <%= stats.uptimeSeconds %>;
+    function formatUptime(sec) {
+      const d = Math.floor(sec / 86400);
+      const h = Math.floor((sec % 86400) / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return [
+        d ? d + 'g' : null,
+        h ? h + 's' : null,
+        m ? m + 'd' : null,
+        s + 's'
+      ].filter(Boolean).join(' ');
+    }
+    setInterval(() => {
+      uptime++;
+      document.getElementById('uptime').textContent = formatUptime(uptime);
+    }, 1000);
+    <% } %>
+  </script>
+</body>
+</html>
